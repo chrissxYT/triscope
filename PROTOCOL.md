@@ -41,3 +41,16 @@ The `dict` contains the following information:
 |----------|-----------------------------------------------------------------|
 | `name`   | The name of the Meter                                           |
 | `probes` | An `array` containing `dict`s with information about the probes |
+
+The `dict`s contained in `probes` contain the following information about each
+"probe" (probes are individual measurements of Meters):
+
+| Key     | Value                                                              |
+|---------|--------------------------------------------------------------------|
+| `type`  | "time", "current", "voltage", "capacitance", "resistance"          |
+| `res`   | The number of bits of resolution of this probe                     |
+| `scale` | The interval in which this probe measures (1 ≘ 3kg ⇒ scale = 3000) |
+| `name`  | The name the Meter wants the Scope to use for this probe           |
+
+Negative `res` values indicate a resolution of `-res`, while using signed
+integers.
