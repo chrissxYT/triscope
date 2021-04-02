@@ -11,8 +11,6 @@ described in RFC 793
 described in RFC 3629
 * The abbreviation "JSON" refers to the JavaScript Object Notation as
 described in RFC 8259
-* The abbreviation "U8" refers to a single byte, interpreted an unsigned integer
-* The abbreviation "I8" refers to a single byte, interpreted a signed integer
 * The abbreviation "U32" refers to four bytes, interpreted a big-endian unsigned
 integer
 * The abbreviation "STR" refers to a U32 encoding the number `n` followed by
@@ -47,10 +45,19 @@ The `dict`s contained in `probes` contain the following information about each
 
 | Key     | Value                                                              |
 |---------|--------------------------------------------------------------------|
-| `type`  | "time", "current", "voltage", "capacitance", "resistance"          |
+| `type`  | `time`, `current`, `voltage`, `capacitance`, `resistance`          |
 | `res`   | The number of bits of resolution of this probe                     |
 | `scale` | The interval in which this probe measures (1 ≘ 3kg ⇒ scale = 3000) |
 | `name`  | The name the Meter wants the Scope to use for this probe           |
 
 Negative `res` values indicate a resolution of `-res`, while using signed
-integers.
+integers, instead of unsigned ones.
+
+The `probes` MUST NOT be empty, because at least one `time` probe is REQUIRED.
+
+## The actual packets
+
+After the Handshake, the Meter sends packets of samples to the Scope. Those are
+sequences of measurements from every probe. Every probe's resolution is rounded
+up to a power of 2 to determine the data type used. All probes are sent as
+8, 16, 32 or 64 big-endian integers.
