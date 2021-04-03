@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_plot/flutter_plot.dart';
 
 void main() async {
   runApp(MyApp(await ServerSocket.bind(InternetAddress.anyIPv4, 14258)));
@@ -41,16 +43,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
       final jsonlenbytes = <int>[];
       var jsonlen = -1;
-      final jsonbytes = <int>[];
       Meter? meter;
       var handshook = false;
       var samplelen = -1;
-      final samplebuffer = <int>[];
+      final buffer = <int>[];
       client.listen((b) {
         if (handshook) {
-          samplebuffer.add(b);
-          if (samplebuffer.length == samplelen) {
-            final s = ByteData.sublistView(Uint8List.fromList(samplebuffer));
+          buffer.add(b);
+          if (buffer.length == samplelen) {
+            final s = ByteData.sublistView(Uint8List.fromList(buffer));
             var i = 0;
             for (final p in meter!.probes) {
               final f = p.size == 1
@@ -65,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
               p.data.add(f(i, Endian.big));
               i += p.size;
             }
-            samplebuffer.clear();
+            buffer.clear();
           }
         } else if (jsonlenbytes.length < 4) {
           jsonlenbytes.add(b);
@@ -74,17 +75,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 .getUint32(0, Endian.big);
           }
         } else {
-          jsonbytes.add(b);
-          if (jsonbytes.length == jsonlen) {
-            meter = Meter.fromJson(jsonDecode(utf8.decode(jsonbytes)));
+          buffer.add(b);
+          if (buffer.length == jsonlen) {
+            meter = Meter.fromJson(jsonDecode(utf8.decode(buffer)));
             meters.add(meter!);
             samplelen =
                 meter!.probes.map((e) => e.size).reduce((v, e) => v + e);
+            buffer.clear();
             handshook = true;
           }
         }
       });
     });
+  }
+
+  List<Point> meterToPoints(Meter meter) {
+    final d = meter.probes
+        .map((p) => p.data.map((d) => d * p.scale).toList())
+        .toList();
+    assert(d.length == 2);
+    assert(d[0].length == d[1].length);
+    return [for (var i = 0; i < d.first.length; i++) Point(d[0][i], d[1][i])];
   }
 
   @override
@@ -97,13 +108,15 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              meters.toString(),
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            Text(meters.toString()),
+            meters.length > 0
+                ? Plot(
+                    data: meterToPoints(meters.first),
+                    style: PlotStyle(textStyle: TextStyle(), trace: true),
+                    gridSize: Offset(1, 1),
+                    padding: EdgeInsets.all(1),
+                  )
+                : Container(),
           ],
         ),
       ),
