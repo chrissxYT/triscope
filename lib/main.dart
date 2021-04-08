@@ -57,16 +57,17 @@ class _MyHomePageState extends State<MyHomePage> {
               final f = p.size == 1
                   ? (i, e) => (p.signed ? s.getInt8(i) : s.getUint8(i))
                   : p.size == 2
-                      ? (p.signed ? s.getInt16 : s.getUint16)
-                      : p.size == 4
-                          ? (p.signed ? s.getInt32 : s.getUint32)
-                          : p.size == 8
-                              ? (p.signed ? s.getInt64 : s.getUint64)
-                              : throw 'unknown p.size';
+                  ? (p.signed ? s.getInt16 : s.getUint16)
+                  : p.size == 4
+                  ? (p.signed ? s.getInt32 : s.getUint32)
+                  : p.size == 8
+                  ? (p.signed ? s.getInt64 : s.getUint64)
+                  : throw 'unknown p.size';
               p.data.add(f(i, Endian.big));
               i += p.size;
             }
             buffer.clear();
+            setState(() {});
           }
         } else if (jsonlenbytes.length < 4) {
           jsonlenbytes.add(b);
@@ -91,11 +92,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Point> meterToPoints(Meter meter) {
     final d = meter.probes
-        .map((p) => p.data.map((d) => d * p.scale).toList())
+        .map((p) => p.data
+            .map((d) => d * p.scale)
+            .toList()
+            .sublist(p.data.length < 100 ? 0 : p.data.length - 100))
         .toList();
     assert(d.length == 2);
     assert(d[0].length == d[1].length);
-    return [for (var i = 0; i < d.first.length; i++) Point(d[0][i], d[1][i])];
+    return [for (var i = 0; i < d[1].length; i++) Point(i, d[1][i])];
   }
 
   @override
@@ -108,7 +112,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(meters.toString()),
             meters.length > 0
                 ? Plot(
                     data: meterToPoints(meters.first),
@@ -144,14 +147,14 @@ class Probe {
   int get size => res == 0
       ? 0
       : res < 9
-          ? 1
-          : res < 17
-              ? 2
-              : res < 33
-                  ? 4
-                  : res < 65
-                      ? 8
-                      : throw 'res too big';
+      ? 1
+      : res < 17
+      ? 2
+      : res < 33
+      ? 4
+      : res < 65
+      ? 8
+      : throw 'res too big';
 
   String toString() => '$name:$type {res:$res,sign:$signed,scale:$scale} $data';
 }
