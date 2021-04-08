@@ -18,10 +18,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
 
-dependency_overrides:
-  flutter_plot:
-    git: https://github.com/chrissxYT/flutter_plot.git
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
