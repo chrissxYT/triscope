@@ -1,4 +1,4 @@
-# The S3P
+# The S3P (v0.1)
 The Super Simple Scope Protocol allows a digital multimeter to talk to
 control software.
 
@@ -60,4 +60,4 @@ The `probes` MUST NOT be empty, because at least one `time` probe is REQUIRED.
 After the Handshake, the Meter sends packets of samples to the Scope. Those are
 sequences of measurements from every probe. Every probe's resolution is rounded
 up to a power of 2 to determine the data type used. All probes are sent as
-8, 16, 32 or 64 big-endian integers.
+8, 16, 32 or 64 bit big-endian integers.

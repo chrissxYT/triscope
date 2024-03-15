@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.purple,
       ),
       home: MyHomePage(sock),
     );
@@ -57,12 +57,12 @@ class _MyHomePageState extends State<MyHomePage> {
               final f = p.size == 1
                   ? (i, e) => (p.signed ? s.getInt8(i) : s.getUint8(i))
                   : p.size == 2
-                  ? (p.signed ? s.getInt16 : s.getUint16)
-                  : p.size == 4
-                  ? (p.signed ? s.getInt32 : s.getUint32)
-                  : p.size == 8
-                  ? (p.signed ? s.getInt64 : s.getUint64)
-                  : throw 'unknown p.size';
+                      ? (p.signed ? s.getInt16 : s.getUint16)
+                      : p.size == 4
+                          ? (p.signed ? s.getInt32 : s.getUint32)
+                          : p.size == 8
+                              ? (p.signed ? s.getInt64 : s.getUint64)
+                              : throw 'unknown probe packet size: ${p.size}';
               p.data.add(f(i, Endian.big));
               i += p.size;
             }
@@ -144,17 +144,7 @@ class Probe {
   static Probe fromJson(dynamic json) =>
       Probe(json['name'], json['type'], json['res'], json['scale'], []);
 
-  int get size => res == 0
-      ? 0
-      : res < 9
-      ? 1
-      : res < 17
-      ? 2
-      : res < 33
-      ? 4
-      : res < 65
-      ? 8
-      : throw 'res too big';
+  int get size => res < 65 ? (res / 8).floor() : throw 'res too big';
 
   String toString() => '$name:$type {res:$res,sign:$signed,scale:$scale} $data';
 }
